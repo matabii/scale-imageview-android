@@ -18,6 +18,10 @@ public class ScaleImageView extends ImageView implements OnTouchListener {
 	private Matrix mMatrix;
 	private final float[] mMatrixValues = new float[9];
 
+	// display width height.
+	private int mWidth;
+	private int mHeight;
+
 	private int mIntrinsicWidth;
 	private int mIntrinsicHeight;
 
@@ -67,28 +71,31 @@ public class ScaleImageView extends ImageView implements OnTouchListener {
 
 	@Override
 	protected boolean setFrame(int l, int t, int r, int b) {
+		mWidth = r-l;
+		mHeight = b-t;
+
 		mMatrix.reset();
 		mScale = (float) r / (float) mIntrinsicWidth;
 		int paddingHeight = 0;
 		int paddingWidth = 0;
 		// scaling vertical
-		if (mScale * mIntrinsicHeight > b) {
-			mScale = (float) b / (float) mIntrinsicHeight;
-			int width = (int) ((float) mScale * (float) mIntrinsicWidth);
+		if (mScale * mIntrinsicHeight > mHeight) {
+			mScale = (float) mHeight / (float) mIntrinsicHeight;
 			mMatrix.postScale(mScale, mScale);
-			paddingWidth = (r - width) / 2;
+			paddingWidth = (r - mWidth) / 2;
 			paddingHeight = 0;
 			// scaling horizontal
 		} else {
 			mMatrix.postScale(mScale, mScale);
-			int height = (int) ((float) mScale * (float) mIntrinsicHeight);
-			paddingHeight = (b - height) / 2;
+			paddingHeight = (b - mHeight) / 2;
 			paddingWidth = 0;
 		}
 		mMatrix.postTranslate(paddingWidth, paddingHeight);
 
 		setImageMatrix(mMatrix);
 		mMinScale = mScale;
+		zoomTo(mScale, mWidth / 2, mHeight / 2);
+		cutting();
 		return super.setFrame(l, t, r, b);
 	}
 
@@ -129,35 +136,35 @@ public class ScaleImageView extends ImageView implements OnTouchListener {
 		}
 		mMatrix.postScale(scale, scale);
 		// move to center
-		mMatrix.postTranslate(-(getWidth() * scale - getWidth()) / 2,
-				-(getHeight() * scale - getHeight()) / 2);
+		mMatrix.postTranslate(-(mWidth * scale - mWidth) / 2,
+				-(mHeight * scale - mHeight) / 2);
 
 		// move x and y distance
-		mMatrix.postTranslate(-(x - (getWidth() / 2)) * scale, 0);
-		mMatrix.postTranslate(0, -(y - (getHeight() / 2)) * scale);
+		mMatrix.postTranslate(-(x - (mWidth / 2)) * scale, 0);
+		mMatrix.postTranslate(0, -(y - (mHeight / 2)) * scale);
 		setImageMatrix(mMatrix);
 	}
 
 	public void cutting() {
 		int width = (int) (mIntrinsicWidth * getScale());
 		int height = (int) (mIntrinsicHeight * getScale());
-		if (getTranslateX() < -(width - getWidth())) {
-			mMatrix.postTranslate(-(getTranslateX() + width - getWidth()), 0);
+		if (getTranslateX() < -(width - mWidth)) {
+			mMatrix.postTranslate(-(getTranslateX() + width - mWidth), 0);
 		}
 		if (getTranslateX() > 0) {
 			mMatrix.postTranslate(-getTranslateX(), 0);
 		}
-		if (getTranslateY() < -(height - getHeight())) {
-			mMatrix.postTranslate(0, -(getTranslateY() + height - getHeight()));
+		if (getTranslateY() < -(height - mHeight)) {
+			mMatrix.postTranslate(0, -(getTranslateY() + height - mHeight));
 		}
 		if (getTranslateY() > 0) {
 			mMatrix.postTranslate(0, -getTranslateY());
 		}
-		if (width < getWidth()) {
-			mMatrix.postTranslate((getWidth() - width) / 2, 0);
+		if (width < mWidth) {
+			mMatrix.postTranslate((mWidth - width) / 2, 0);
 		}
-		if (height < getHeight()) {
-			mMatrix.postTranslate(0, (getHeight() - height) / 2);
+		if (height < mHeight) {
+			mMatrix.postTranslate(0, (mHeight - height) / 2);
 		}
 		setImageMatrix(mMatrix);
 	}
@@ -169,8 +176,8 @@ public class ScaleImageView extends ImageView implements OnTouchListener {
 	}
 
 	private float dispDistance() {
-		return FloatMath.sqrt(getWidth() * getWidth() + getHeight()
-				* getHeight());
+		return FloatMath.sqrt(mWidth * mWidth + mHeight
+				* mHeight);
 	}
 
 	@Override
@@ -207,7 +214,7 @@ public class ScaleImageView extends ImageView implements OnTouchListener {
 				mPrevDistance = dist;
 				scale += 1;
 				scale = scale * scale;
-				zoomTo(scale, getWidth() / 2, getHeight() / 2);
+				zoomTo(scale, mWidth / 2, mHeight / 2);
 				cutting();
 			} else if (!isScaling) {
 				int distanceX = mPrevMoveX - (int) event.getX();
