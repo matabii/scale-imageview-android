@@ -6,6 +6,7 @@ import android.graphics.Matrix;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.util.FloatMath;
+import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
@@ -13,7 +14,6 @@ import android.widget.ImageView;
 
 public class ScaleImageView extends ImageView implements OnTouchListener {
     private float MAX_SCALE = 2f;
-    private int DOUBLE_TAP_SECOND = 400;
 
     private Matrix mMatrix;
     private final float[] mMatrixValues = new float[9];
@@ -28,17 +28,12 @@ public class ScaleImageView extends ImageView implements OnTouchListener {
     private float mScale;
     private float mMinScale;
 
-    // double tap for determining
-    private long mLastTime = 0;
-    private boolean isDoubleTap;
-    private int mDoubleTapX;
-    private int mDoubleTapY;
-
     private float mPrevDistance;
     private boolean isScaling;
 
     private int mPrevMoveX;
     private int mPrevMoveY;
+    private GestureDetector mDetector;
 
     String TAG = "ScaleImageView";
 
@@ -67,6 +62,15 @@ public class ScaleImageView extends ImageView implements OnTouchListener {
             mIntrinsicHeight = d.getIntrinsicHeight();
             setOnTouchListener(this);
         }
+        mDetector = new GestureDetector(new GestureDetector.SimpleOnGestureListener() {
+            @Override
+            public boolean onDoubleTap(MotionEvent e) {
+                maxZoomTo((int) e.getX(), (int) e.getY());
+                cutting();
+                return super.onDoubleTap(e);
+            }
+        });
+
     }
 
     @Override
@@ -108,7 +112,7 @@ public class ScaleImageView extends ImageView implements OnTouchListener {
         return getValue(mMatrix, Matrix.MSCALE_X);
     }
 
-    protected float getTranslateX() {
+    public float getTranslateX() {
         return getValue(mMatrix, Matrix.MTRANS_X);
     }
 
@@ -127,7 +131,7 @@ public class ScaleImageView extends ImageView implements OnTouchListener {
         }
     }
 
-    protected void zoomTo(float scale, int x, int y) {
+    public void zoomTo(float scale, int x, int y) {
         if (getScale() * scale < mMinScale) {
             return;
         }
@@ -180,6 +184,9 @@ public class ScaleImageView extends ImageView implements OnTouchListener {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        if (mDetector.onTouchEvent(event)) {
+            return true;
+        }
         int touchCount = event.getPointerCount();
         switch (event.getAction()) {
         case MotionEvent.ACTION_DOWN:
@@ -190,18 +197,9 @@ public class ScaleImageView extends ImageView implements OnTouchListener {
                 mPrevDistance = distance;
                 isScaling = true;
             } else {
-                if (System.currentTimeMillis() <= mLastTime + DOUBLE_TAP_SECOND) {
-                    if (30 > Math.abs(mPrevMoveX - event.getX()) + Math.abs(mPrevMoveY - event.getY())) {
-                        isDoubleTap = true;
-                        mDoubleTapX = (int) event.getX();
-                        mDoubleTapY = (int) event.getY();
-                    }
-                }
-                mLastTime = System.currentTimeMillis();
                 mPrevMoveX = (int) event.getX();
                 mPrevMoveY = (int) event.getY();
             }
-            break;
         case MotionEvent.ACTION_MOVE:
             if (touchCount >= 2 && isScaling) {
                 float dist = distance(event.getX(0), event.getX(1), event.getY(0), event.getY(1));
@@ -225,14 +223,7 @@ public class ScaleImageView extends ImageView implements OnTouchListener {
         case MotionEvent.ACTION_POINTER_2_UP:
             if (event.getPointerCount() <= 1) {
                 isScaling = false;
-                if (isDoubleTap) {
-                    if (30 > Math.abs(mDoubleTapX - event.getX()) + Math.abs(mDoubleTapY - event.getY())) {
-                        maxZoomTo(mDoubleTapX, mDoubleTapY);
-                        cutting();
-                    }
-                }
             }
-            isDoubleTap = false;
             break;
         }
         return true;
@@ -242,4 +233,5 @@ public class ScaleImageView extends ImageView implements OnTouchListener {
     public boolean onTouch(View v, MotionEvent event) {
         return super.onTouchEvent(event);
     }
+
 }
