@@ -12,7 +12,7 @@ Very similar ImageView
 
 Setting Layout XML
 
-<com.matabii.dev.scaleimageview.ScaleImageView
+    <com.matabii.dev.scaleimageview.ScaleImageView
         android:id="@+id/image"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
