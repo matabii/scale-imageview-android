@@ -13,6 +13,7 @@ import android.view.View.OnTouchListener;
 import android.widget.ImageView;
 
 public class ScaleImageView extends ImageView implements OnTouchListener {
+    private Context mContext;
     private float MAX_SCALE = 2f;
 
     private Matrix mMatrix;
@@ -39,11 +40,13 @@ public class ScaleImageView extends ImageView implements OnTouchListener {
 
     public ScaleImageView(Context context, AttributeSet attr) {
         super(context, attr);
+        this.mContext = context;
         initialize();
     }
 
     public ScaleImageView(Context context) {
         super(context);
+        this.mContext = context;
         initialize();
     }
 
@@ -62,7 +65,7 @@ public class ScaleImageView extends ImageView implements OnTouchListener {
             mIntrinsicHeight = d.getIntrinsicHeight();
             setOnTouchListener(this);
         }
-        mDetector = new GestureDetector(new GestureDetector.SimpleOnGestureListener() {
+        mDetector = new GestureDetector(mContext, new GestureDetector.SimpleOnGestureListener() {
             @Override
             public boolean onDoubleTap(MotionEvent e) {
                 maxZoomTo((int) e.getX(), (int) e.getY());
