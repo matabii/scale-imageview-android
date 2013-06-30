@@ -56,6 +56,12 @@ public class ScaleImageView extends ImageView implements OnTouchListener {
         this.initialize();
     }
 
+    @Override
+    public void setImageResource(int resId) {
+        super.setImageResource(resId);
+        this.initialize();
+    }
+
     private void initialize() {
         this.setScaleType(ScaleType.MATRIX);
         this.mMatrix = new Matrix();
