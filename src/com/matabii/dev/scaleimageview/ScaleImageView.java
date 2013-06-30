@@ -88,7 +88,9 @@ public class ScaleImageView extends ImageView implements OnTouchListener {
         mHeight = b - t;
 
         mMatrix.reset();
-        mScale = (float) r / (float) mIntrinsicWidth;
+        int r_norm = r - l;
+        mScale = (float) r_norm / (float) mIntrinsicWidth;
+
         int paddingHeight = 0;
         int paddingWidth = 0;
         // scaling vertical
